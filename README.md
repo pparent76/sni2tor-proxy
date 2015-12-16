@@ -21,7 +21,7 @@ Features
 Usage Pre-requisit
 -----
 
-You must have a Tor-SOCK proxy runing on port 9050.
+You must have a Tor-SOCK proxy running on port 9050.
 
 Usage
 -----
@@ -39,9 +39,9 @@ Association between hostnames( domain-names) and tor hidden services addresse,
 must be stored in a MySQL Database running on localhost.
 
 The default parameters of the Database are as follow:
-DataBase name: sni2tor-proxy
-DataBase user: proxyuser
-Database password: proxypasswd
++ DataBase name: sni2tor-proxy
++ DataBase user: proxyuser
++ Database password: proxypasswd
 
 You can change those parameters thanks to command line arguments.
 
