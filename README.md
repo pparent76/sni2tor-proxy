@@ -3,9 +3,10 @@ SNI2tor Proxy
 
 Proxies incoming TLS connections to tor hidden services based on the hostname
 contained in the initial request of the TLS session (SNI). This enables to provide
-a proxy frontend to allow clients access some tor-hidden services without tor installed 
-on the client machine, and while keeping end-to-end encryption bewteen the tor hidden
-service provider, and the client. The proxy provider cannot decrypt the traffic.
+a proxy frontend to allow clients to access some tor-hidden services without tor installed 
+on the client machine, and while keeping the anonymity of the tor service provider AND the end-to-end 
+encryption bewteen the tor hidden service provider, and the client. The proxy provider running sni2tor-proxy 
+cannot decrypt the traffic.
 
 News
 ----
