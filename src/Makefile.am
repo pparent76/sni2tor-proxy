@@ -2,7 +2,7 @@ AM_CPPFLAGS = $(LIBEV_CFLAGS) $(LIBPCRE_CFLAGS) $(LIBUDNS_CFLAGS)
 
 sbin_PROGRAMS = sni2torproxy
 
-sni2torproxy_SOURCES = ../test.c \
+sni2torproxy_SOURCES = sni2torproxy.c \
                    http.c \
                    http.h \
                    logger.c \

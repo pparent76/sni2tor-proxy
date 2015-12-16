@@ -25,7 +25,6 @@
  */
 #ifndef LOGGER_H
 #define LOGGER_H
-#define PACKAGE_NAME "pierre"
 struct Logger;
 
 #define LOG_EMERG   0

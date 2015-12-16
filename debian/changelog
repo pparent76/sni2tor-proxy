@@ -1,8 +1,9 @@
-sniproxy (0.4.0+git.7.gd3aba69) UNRELEASED; urgency=medium
+sniproxy (0.4.0+git.10.g9631cbd) UNRELEASED; urgency=medium
 
   * New git revision
+  * New git revision
 
- -- Pierre Parent <pparent@laptop-p25k.pparent.fr>  Tue, 15 Dec 2015 15:55:15 +0100
+ -- Pierre Parent <pparent@laptop-p25k.pparent.fr>  Wed, 16 Dec 2015 20:31:44 +0100
 
 sniproxy (0.4.0) unstable; urgency=medium
 
