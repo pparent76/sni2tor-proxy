@@ -94,7 +94,6 @@ int connect_tor_socket(struct TorSocket* torsock, char* host, int port)
 
 int send_data_to_tor_socket(struct TorSocket* torsocket, char* data, int datalen)
 {
-  printf("send data (%d)\n",datalen);
 	if( send(torsocket->sock , data , datalen, 0) < 0)
         {
             puts("Send failed");
@@ -117,9 +116,7 @@ return count;
 int receive_data_from_tor_socket(struct TorSocket* torsocket, char* data, int maxsize)
 {
 
-    int datalen= recv(torsocket->sock , data , maxsize , 0);
-    if (datalen>0)
-      printf("receive data(%d)\n",datalen);        
+    int datalen= recv(torsocket->sock , data , maxsize , 0);       
         return datalen;
 }
 

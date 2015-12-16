@@ -15,17 +15,39 @@ Features
 --------
 + Name-based proxying of HTTPS without decrypting traffic. No keys or
   certificates required.
-* Dynamic association table beteween tor hidden services and 
+* Dynamic association table beteween tor hidden services and hostnames,
+  thanks to a MySQL database.
+
+Usage Pre-requisit
+-----
+
+You must have a Tor-SOCK proxy runing on port 9050.
 
 Usage
 -----
 
-    Usage: sni2torproxy [-c <config>] [-f] [-n <max file descriptor limit>] [-V]
-        -c  configuration file, defaults to /etc/sniproxy.conf
-        -f  run in foreground, do not drop privileges
-        -n  specify file descriptor limit
-        -V  print the version of SNIProxy and exit
+    Usage: sni2torproxy [-l port] [-f port] [--dbuser user] [--dbpasswd passwd] [-dbname name]
+        -l  Listening port used by sni2tor-proxy
+        -f  Port of tor hidden services that sni2tor-proxy should use to forward data
+        --dbuser username used to connect to MySQL database
+        --dbpasswd  password used to connect to MySQL database.
+        --dbname name of the MySQL database that should be used.
 
+Database
+-----
+Association between hostnames( domain-names) and tor hidden services addresse, 
+must be stored in a MySQL Database running on localhost.
+
+The default parameters of the Database are as follow:
+DataBase name: sni2tor-proxy
+DataBase user: proxyuser
+Database password: proxypasswd
+
+You can change those parameters thanks to command line arguments.
+
+The data is read the Table "Association", supposed to have at least 
+2 Columns: (hostname , torservice) allowing to query an association.
+These parameters cannot be changed for now.
 
 Installation
 ------------
