@@ -1,4 +1,6 @@
 #include "torsocks.h"
+#include <fcntl.h>
+#include <sys/ioctl.h>
 
 int connect_tor_socket(struct TorSocket* torsock, char* host, int port)
 {
@@ -87,11 +89,12 @@ int connect_tor_socket(struct TorSocket* torsock, char* host, int port)
         puts("Server reply :");
         printf("%d %d %d %d %d %d\n",(int)server_reply[0],(int)server_reply[1],(int)server_reply[2],(int)server_reply[3],(int)server_reply[4],(int)server_reply[5]);
 	
-
+	//fcntl(torsock->sock, F_SETFL, O_NONBLOCK);
 }
 
 int send_data_to_tor_socket(struct TorSocket* torsocket, char* data, int datalen)
 {
+  printf("send data (%d)\n",datalen);
 	if( send(torsocket->sock , data , datalen, 0) < 0)
         {
             puts("Send failed");
@@ -101,15 +104,23 @@ int send_data_to_tor_socket(struct TorSocket* torsocket, char* data, int datalen
         
 }
 
-int receive_data_from_tor_socket(struct TorSocket* torsocket, char* data, int maxsize, int* datalen)
+int availiable_data_in_tor_socket(struct TorSocket* s)
 {
-    *datalen= recv(torsocket->sock , data , maxsize , 0);
-    if (datalen<0)
-        {
-            puts("recv failed");
-           return 0;
-        }
-        return 1;
+int count;
+ioctl(s->sock, FIONREAD, &count);
+if (count>0)
+  printf("Availiable data %d\n",count);
+return count;
+}
+
+
+int receive_data_from_tor_socket(struct TorSocket* torsocket, char* data, int maxsize)
+{
+
+    int datalen= recv(torsocket->sock , data , maxsize , 0);
+    if (datalen>0)
+      printf("receive data(%d)\n",datalen);        
+        return datalen;
 }
 
 
@@ -117,5 +128,16 @@ int receive_data_from_tor_socket(struct TorSocket* torsocket, char* data, int ma
 int close_tor_socket(struct TorSocket* torsock)
 {
 close(torsock->sock);
+}
+
+void set_read_timeout_tor_socket(struct TorSocket *sock,int ms)
+{
+  	
+    struct timeval tv;
+    
+    tv.tv_sec = ms/1000;  /* 30 Secs Timeout */
+    tv.tv_usec = (ms%1000)*1000;  // Not init'ing this can cause strange errors
+
+    setsockopt(sock->sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 }
 

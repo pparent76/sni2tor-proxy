@@ -1,36 +1,21 @@
 AM_CPPFLAGS = $(LIBEV_CFLAGS) $(LIBPCRE_CFLAGS) $(LIBUDNS_CFLAGS)
 
-sbin_PROGRAMS = sniproxy
+sbin_PROGRAMS = sni2torproxy
 
-sniproxy_SOURCES = sniproxy.c \
-                   address.c \
-                   address.h \
-                   backend.c \
-                   backend.h \
-                   binder.c \
-                   binder.h \
-                   buffer.c \
-                   buffer.h \
-                   cfg_parser.c \
-                   cfg_parser.h \
-                   cfg_tokenizer.c \
-                   cfg_tokenizer.h \
-                   config.c \
-                   config.h \
-                   connection.c \
-                   connection.h \
+sni2torproxy_SOURCES = ../test.c \
                    http.c \
                    http.h \
-                   listener.c \
-                   listener.h \
                    logger.c \
                    logger.h \
                    protocol.h \
-                   resolv.c \
-                   resolv.h \
-                   table.c \
-                   table.h \
                    tls.c \
-                   tls.h
+                   tls.h \
+                   torsocks.h \
+                   torsocks.c \
+                   database.h \
+                   database.c \
+                   bind.h \
+                   bind.c 
 
-sniproxy_LDADD = $(LIBEV_LIBS) $(LIBPCRE_LIBS) $(LIBUDNS_LIBS)
+sni2torproxy_LDADD = $(LIBEV_LIBS) $(LIBPCRE_LIBS) $(LIBUDNS_LIBS)
+sni2torproxy_CFLAGS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -ldl

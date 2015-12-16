@@ -1,3 +1,9 @@
+sniproxy (0.4.0+git.7.gd3aba69) UNRELEASED; urgency=medium
+
+  * New git revision
+
+ -- Pierre Parent <pparent@laptop-p25k.pparent.fr>  Tue, 15 Dec 2015 15:55:15 +0100
+
 sniproxy (0.4.0) unstable; urgency=medium
 
   * Improve DNS resolver:
