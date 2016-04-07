@@ -16,6 +16,7 @@
 #include "bind.h"
 #include <unistd.h>
 #include <getopt.h>
+#include <signal.h>
 
 void print_usage();
 int getDataAvailliable (int socket);
@@ -41,6 +42,7 @@ static struct option long_options[] =
 int main(int argc , char *argv[])
 {
 
+  signal(SIGCHLD, SIG_IGN);
     struct database_sni2tor *database;
     int socket_desc , client_sock , c , read_size;
     struct sockaddr_in server , client;
