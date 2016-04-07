@@ -321,8 +321,8 @@ lookup_syslog_facility(const char *facility) {
         { "user",   LOG_USER },
         { "uucp",   LOG_UUCP },
     };
-
-    for (size_t i = 0; i < sizeof(facilities) / sizeof(facilities[0]); i++)
+size_t i;
+    for (i = 0; i < sizeof(facilities) / sizeof(facilities[0]); i++)
         if(strncasecmp(facilities[i].name, facility, strlen(facility)) == 0)
             return facilities[i].number;
 

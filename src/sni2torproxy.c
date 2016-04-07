@@ -153,7 +153,7 @@ printf("BDD config: %s %s %s\n",dbUser,dbPasswd,dbname);
     bind_socket_to_tor(client_sock,&s);
   
     puts("Bye!\n");
-    exit 0;
+    exit(0);
 }
 
 void print_usage()
