@@ -9,7 +9,7 @@
  * 
  * @return void
  */
-void init_binding_tls_to_tor(int socket1,struct TorSocket *socket2, struct database_sin2tor *, int port_tor);
+int init_binding_tls_to_tor(int socket1,struct TorSocket *socket2, struct database_sin2tor *, int port_tor);
 
 /**
  * @brief Handles bi-directional binding between a regular socket and a tor socket.

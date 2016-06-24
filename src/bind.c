@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include "tls.h"
 
-void init_binding_tls_to_tor(int socket1, struct TorSocket* socket2, struct database_sin2tor * database, int port_tor)
+int init_binding_tls_to_tor(int socket1, struct TorSocket* socket2, struct database_sin2tor * database, int port_tor)
 {
     char client_message[20000];
     char res_request[256];
