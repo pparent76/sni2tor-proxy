@@ -161,7 +161,9 @@ printf("BDD config: %s %s %s\n",dbUser,dbPasswd,dbname);
     else
     {
       puts("Requested wrong domain, ciao!\n");
+      close (client_sock);
     }
+    close_tor_socket(&s);
     exit(0);
 }
 
