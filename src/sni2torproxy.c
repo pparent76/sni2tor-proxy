@@ -54,6 +54,7 @@ int main(int argc , char *argv[])
     char dbUser[256]="proxyuser";
     char dbPasswd[256]="proxypasswd";
     char dbname[256]="sni2tor-proxy";
+    int res_init;
 
     
    int option_index = 0;
@@ -149,12 +150,18 @@ printf("BDD config: %s %s %s\n",dbUser,dbPasswd,dbname);
 
 
     //init tls binding
-    init_binding_tls_to_tor(client_sock,&s,database,tor_hidden_services_port);
-
+    res_init=init_binding_tls_to_tor(client_sock,&s,database,tor_hidden_services_port);
+    
+    if (res_init!=-1)
+    {
     //Bind until done
     bind_socket_to_tor(client_sock,&s);
-  
     puts("Bye!\n");
+    }
+    else
+    {
+      puts("Requested wrong domain, ciao!\n");
+    }
     exit(0);
 }
 

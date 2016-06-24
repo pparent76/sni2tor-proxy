@@ -17,6 +17,8 @@ void init_binding_tls_to_tor(int socket1, struct TorSocket* socket2, struct data
             printf("hostname: %s\n",hostname);
             request_corresponding_service(database,hostname,res_request);
             printf("Association: %s\n",res_request);
+	    if (strlen(res_request)==0)
+	      return -1;
             connect_tor_socket(socket2,res_request, port_tor);
         }
         else
