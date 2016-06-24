@@ -37,6 +37,8 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
     char tor_response[20000];    
     struct timeval tv;
     int read_size;
+    int client_nodata_counter=0;
+    int tor_nodata_counter=0;    
     
     tv.tv_sec = 0;  
     tv.tv_usec = 10000;  
@@ -47,7 +49,7 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
     while(1)
     {
 
-        read_size = recv(socket1 , client_message , 20000 , 0);
+        read_size = recv(socket1 , client_message , 20000 , MSG_PEEK);
 
 
         //Send the message back to client
@@ -59,10 +61,22 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
 
         if (read_size==0)
         {
-            printf("Disconected from client\n");
-            close(socket1);
+	    
+            printf("No data from client\n");
+            sleep(1);
+	    client_nodata_counter++;
+	    if (client_nodata_counter>60)
+	    {
+	    close(socket1);
             return;
+	    }
         }
+        
+        if (read_size<0)
+        {
+            printf("Disconected from client\n");
+	    close(socket1);
+        }        
 
         int len=receive_data_from_tor_socket(socket2,tor_response,20000);
         if (len>0)
@@ -74,8 +88,13 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
         if (len==0)
         {
             printf("Disconected from tor\n");
+            sleep(1);
+	    tor_nodata_counter++;
+	    if (tor_nodata_counter>60)
+	    {	    
             close(socket1);
             return;
+	    }
         }
 
     }
