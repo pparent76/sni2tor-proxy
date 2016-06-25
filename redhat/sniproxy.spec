@@ -1,5 +1,5 @@
 Name: sniproxy
-Version: 0.4.0+git.10.g9631cbd
+Version: 0.4.0+git.15.gaa60e80
 Release: 1%{?dist}
 Summary: Transparent TLS and HTTP layer 4 proxy with SNI support
 
