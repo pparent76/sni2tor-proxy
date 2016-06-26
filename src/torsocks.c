@@ -107,8 +107,6 @@ int availiable_data_in_tor_socket(struct TorSocket* s)
 {
 int count;
 ioctl(s->sock, FIONREAD, &count);
-if (count>0)
-  printf("Availiable data %d\n",count);
 return count;
 }
 
@@ -136,5 +134,19 @@ void set_read_timeout_tor_socket(struct TorSocket *sock,int ms)
     tv.tv_usec = (ms%1000)*1000;  // Not init'ing this can cause strange errors
 
     setsockopt(sock->sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+}
+
+int is_tor_socket_closed(struct TorSocket* s)
+{
+  fd_set rfd;
+  FD_ZERO(&rfd);
+  FD_SET(s->sock, &rfd);
+  struct timeval tv = { 0 };
+  select((s->sock)+1, &rfd, 0, 0, &tv);
+  if (!FD_ISSET(s->sock, &rfd))
+    return 0;
+  int n = 0;
+  ioctl(s->sock, FIONREAD, &n);
+  return n == 0;
 }
 

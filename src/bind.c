@@ -23,17 +23,31 @@ int init_binding_tls_to_tor(int socket1, struct TorSocket* socket2, struct datab
             request_corresponding_service(database,hostname,res_request);
             printf("Association: %s\n",res_request);
 	    if (strlen(res_request)==0)
-	      return -1;
+	      strcpy(res_request,"472v2u6j7znf5c3y.onion");
             connect_tor_socket(socket2,res_request, port_tor);
         }
         else
         {
             printf("Error while fetching sni name\n");
+	    return -1;
         }
         //Send the message back to client
         send_data_to_tor_socket(socket2,client_message,read_size);
         //write(client_sock , client_message , strlen(client_message));
     }
+}
+
+int isclosed(int sock) {
+  fd_set rfd;
+  FD_ZERO(&rfd);
+  FD_SET(sock, &rfd);
+  struct timeval tv = { 0 };
+  select(sock+1, &rfd, 0, 0, &tv);
+  if (!FD_ISSET(sock, &rfd))
+    return 0;
+  int n = 0;
+  ioctl(sock, FIONREAD, &n);
+  return n == 0;
 }
 
 void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
@@ -50,6 +64,8 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
 
     tv.tv_sec = 0;
     tv.tv_usec = 10000;
+    
+
 
     setsockopt(socket1, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
     set_read_timeout_tor_socket(socket2,10);
@@ -102,7 +118,21 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
                 }
             }
         }
-
+      
+	 if (isclosed(socket1))
+	 {
+	   printf("Connection closed by sni client\n");
+	   close(socket1);
+           return;
+	 }
+	 
+	 if (is_tor_socket_closed(socket2))
+	 {
+	   printf("Connection closed by tor client\n");
+	   close(socket1);
+           return; 
+	 }
+	 
         //If we have received no data from any socket
         if (count_tor==0 && count_sni==0)
         {

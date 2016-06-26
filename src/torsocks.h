@@ -19,5 +19,6 @@ int send_data_to_tor_socket(struct TorSocket *, char* data, int datalen);
 int receive_data_from_tor_socket(struct TorSocket *, char* data, int maxsize);
 int availiable_data_in_tor_socket(struct TorSocket *);
 int close_tor_socket(struct TorSocket *);
+int is_tor_socket_closed(struct TorSocket *);
 void set_read_timeout_tor_socket(struct TorSocket *,int ms);
 #endif
