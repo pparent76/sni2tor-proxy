@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #define IDLE_TIME_US 50000
-#define BIND_TIMEOUT_S 60
+#define BIND_TIMEOUT_S 300
 
 int init_binding_tls_to_tor(int socket1, struct TorSocket* socket2, struct database_sin2tor * database, int port_tor)
 {
@@ -80,19 +80,9 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
         {
             read_size = recv(socket1 , client_message , 20000 , 0);
             //Send the message back to client
-            if (read_size>0)
-            {
-                send_data_to_tor_socket(socket2,client_message,read_size);
-                // read_size =0;
-            }
+             send_data_to_tor_socket(socket2,client_message,read_size);
 
-            if (read_size==0)
-            {
 
-                printf("No data from client\n");
-                close(socket1);
-                return;
-            }
         }
 
 	//See how much data we have from tor client  
@@ -100,36 +90,28 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
         if (count_tor > 0)
         {
             int len=receive_data_from_tor_socket(socket2,tor_response,20000);
-            if (len>0)
-            {
-                int res;
-                res=write(socket1 , tor_response , len);
-            }
-
-            if (len==0)
-            {
-                printf("Disconected from tor\n");
-                //    sleep(1);
-                tor_nodata_counter++;
-                if (tor_nodata_counter>60)
-                {
-                    close(socket1);
-                    return;
-                }
-            }
+       
+            int res;
+            res=write(socket1 , tor_response , len);
         }
       
 	 if (isclosed(socket1))
 	 {
 	   printf("Connection closed by sni client\n");
+	   shutdown(socket1,SHUT_RDWR);
+	   usleep(IDLE_TIME_US);
 	   close(socket1);
+	   close_tor_socket(socket2);	   
            return;
 	 }
 	 
 	 if (is_tor_socket_closed(socket2))
 	 {
 	   printf("Connection closed by tor client\n");
+	   shutdown(socket1,SHUT_RDWR);
+	   usleep(IDLE_TIME_US);
 	   close(socket1);
+	   close_tor_socket(socket2);
            return; 
 	 }
 	 
@@ -149,7 +131,10 @@ void bind_socket_to_tor(int socket1, struct TorSocket* socket2)
         if (global_counter> (BIND_TIMEOUT_S*1000000)/IDLE_TIME_US)
         {
             printf("Inactive for too long closing socket\n");
-            close(socket1);
+	    shutdown(socket1,SHUT_RDWR);
+	    usleep(IDLE_TIME_US);
+	    close(socket1);
+	    close_tor_socket(socket2);
             return;
         }
     }

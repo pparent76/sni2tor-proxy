@@ -1,7 +1,9 @@
 #include "torsocks.h"
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
+#define IDLE_TIME_BEFORE_EXIT 300
 int connect_tor_socket(struct TorSocket* torsock, char* host, int port)
 {
   
@@ -122,7 +124,9 @@ int receive_data_from_tor_socket(struct TorSocket* torsocket, char* data, int ma
 
 int close_tor_socket(struct TorSocket* torsock)
 {
-close(torsock->sock);
+	    shutdown(torsock->sock,SHUT_RDWR);
+	    usleep(IDLE_TIME_BEFORE_EXIT);
+	    close(torsock->sock);
 }
 
 void set_read_timeout_tor_socket(struct TorSocket *sock,int ms)

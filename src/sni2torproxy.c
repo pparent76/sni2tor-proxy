@@ -133,8 +133,12 @@ printf("BDD config: %s %s %s\n",dbUser,dbPasswd,dbname);
             perror("accept failed");
             return 1;
         }
-
+        
         pid=fork();
+
+        if ( pid > 0)
+           close(client_sock);
+
     }
     while(pid!=0);
 
@@ -161,9 +165,10 @@ printf("BDD config: %s %s %s\n",dbUser,dbPasswd,dbname);
     else
     {
       puts("Requested wrong domain, ciao!\n");
+      close_tor_socket(&s);
       close (client_sock);
     }
-    close_tor_socket(&s);
+
     exit(0);
 }
 
