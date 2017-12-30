@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Dustin Lundquist <dustin@null-ptr.net>
+ * Copyright (c) 2012, Dustin Lundquist <dustin@null-ptr.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,43 +23,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef LOGGER_H
-#define LOGGER_H
-struct Logger;
+#ifndef BUFFER_H
+#define BUFFER_H
 
-#define LOG_EMERG   0
-#define LOG_ALERT   1
-#define LOG_CRIT    2
-#define LOG_ERR     3
-#define LOG_WARNING 4
-#define LOG_NOTICE  5
-#define LOG_INFO    6
-#define LOG_DEBUG   7
+#include <stdio.h>
+#include <sys/types.h>
+#include <ev.h>
 
-struct Logger *new_syslog_logger(const char *facility);
-struct Logger *new_file_logger(const char *filepath);
-void set_default_logger(struct Logger *);
-void set_logger_priority(struct Logger *, int);
-struct Logger *logger_ref_get(struct Logger *);
-void logger_ref_put(struct Logger *);
-void reopen_loggers();
 
-/* Shorthand to log to global error log */
-void fatal(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)))
-    __attribute__ ((noreturn));
-void err(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void warn(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void notice(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void info(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void debug(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
+struct Buffer {
+    char *buffer;
+    size_t size;
+    size_t head;
+    size_t len;
+    ev_tstamp last_recv;
+    ev_tstamp last_send;
+    size_t tx_bytes;
+    size_t rx_bytes;
+};
 
-void log_msg(struct Logger *, int, const char *, ...)
-    __attribute__ ((format (printf, 3, 4)));
+struct Buffer *new_buffer(int, struct ev_loop *);
+void free_buffer(struct Buffer *);
+
+ssize_t buffer_recv(struct Buffer *, int, int, struct ev_loop *);
+ssize_t buffer_send(struct Buffer *, int, int, struct ev_loop *);
+ssize_t buffer_read(struct Buffer *, int);
+ssize_t buffer_write(struct Buffer *, int);
+ssize_t buffer_resize(struct Buffer *, size_t);
+size_t buffer_peek(const struct Buffer *, void *, size_t);
+size_t buffer_coalesce(struct Buffer *, const void **);
+size_t buffer_pop(struct Buffer *, void *, size_t);
+size_t buffer_push(struct Buffer *, const void *, size_t);
+static inline size_t buffer_size(const struct Buffer *b) {
+    return b->size;
+}
+static inline size_t buffer_len(const struct Buffer *b) {
+    return b->len;
+}
+static inline size_t buffer_room(const struct Buffer *b) {
+    return b->size - b->len;
+}
 
 #endif

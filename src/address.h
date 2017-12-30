@@ -23,43 +23,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef LOGGER_H
-#define LOGGER_H
-struct Logger;
+#ifndef ADDRESS_H
+#define ADDRESS_H
 
-#define LOG_EMERG   0
-#define LOG_ALERT   1
-#define LOG_CRIT    2
-#define LOG_ERR     3
-#define LOG_WARNING 4
-#define LOG_NOTICE  5
-#define LOG_INFO    6
-#define LOG_DEBUG   7
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <sys/socket.h>
 
-struct Logger *new_syslog_logger(const char *facility);
-struct Logger *new_file_logger(const char *filepath);
-void set_default_logger(struct Logger *);
-void set_logger_priority(struct Logger *, int);
-struct Logger *logger_ref_get(struct Logger *);
-void logger_ref_put(struct Logger *);
-void reopen_loggers();
+/*
+ * Define size of address buffers for display_address() calls to
+ * be large enough for the maximum domain name and a 5 digit port
+ */
+#define ADDRESS_BUFFER_SIZE 262
 
-/* Shorthand to log to global error log */
-void fatal(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)))
-    __attribute__ ((noreturn));
-void err(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void warn(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void notice(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void info(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
-void debug(const char *, ...)
-    __attribute__ ((format (printf, 1, 2)));
+struct Address;
 
-void log_msg(struct Logger *, int, const char *, ...)
-    __attribute__ ((format (printf, 3, 4)));
+struct Address *new_address(const char *);
+struct Address *new_address_sa(const struct sockaddr *, socklen_t);
+struct Address *copy_address(const struct Address *);
+size_t address_len(const struct Address *);
+int address_compare(const struct Address *, const struct Address *);
+int address_is_hostname(const struct Address *);
+int address_is_sockaddr(const struct Address *);
+int address_is_wildcard(const struct Address *);
+const char *address_hostname(const struct Address *);
+const struct sockaddr *address_sa(const struct Address *);
+socklen_t address_sa_len(const struct Address *);
+uint16_t address_port(const struct Address *);
+void address_set_port(struct Address *, uint16_t);
+int address_set_port_str(struct Address *addr, const char* str);
+const char *display_address(const struct Address *, char *, size_t);
+const char *display_sockaddr(const void *, char *, size_t);
+int is_numeric(const char *);
 
 #endif

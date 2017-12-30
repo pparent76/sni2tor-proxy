@@ -107,9 +107,16 @@ accept_connection(struct Listener *listener, struct ev_loop *loop) {
         return 0;
     }
 
+#ifdef HAVE_ACCEPT4
+    int sockfd = accept4(listener->watcher.fd,
+                    (struct sockaddr *)&con->client.addr,
+                    &con->client.addr_len,
+                    SOCK_NONBLOCK);
+#else
     int sockfd = accept(listener->watcher.fd,
                     (struct sockaddr *)&con->client.addr,
                     &con->client.addr_len);
+#endif
     if (sockfd < 0) {
         int saved_errno = errno;
 
@@ -120,8 +127,10 @@ accept_connection(struct Listener *listener, struct ev_loop *loop) {
         return 0;
     }
 
+#ifndef HAVE_ACCEPT4
     int flags = fcntl(sockfd, F_GETFL, 0);
     fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+#endif
 
     /* Avoiding type-punned pointer warning */
     struct ev_io *client_watcher = &con->client.watcher;
@@ -411,8 +420,30 @@ resolve_server_address(struct Connection *con, struct ev_loop *loop) {
         cb_data->address = server_address;
         cb_data->loop = loop;
 
+        int resolv_mode = RESOLV_MODE_DEFAULT;
+        if (con->listener->transparent_proxy) {
+            char listener_address[ADDRESS_BUFFER_SIZE];
+            switch (con->client.addr.ss_family) {
+                case AF_INET:
+                    resolv_mode = RESOLV_MODE_IPV4_ONLY;
+                    break;
+                case AF_INET6:
+                    resolv_mode = RESOLV_MODE_IPV6_ONLY;
+                    break;
+                default:
+                    warn("attempt to use transparent proxy with hostname %s "
+                            "on non-IP listener %s, falling back to "
+                            "non-transparent mode",
+                            address_hostname(server_address),
+                            display_sockaddr(con->listener->address,
+                                    listener_address, sizeof(listener_address))
+                            );
+            }
+        }
+
         con->query_handle = resolv_query(address_hostname(server_address),
-                resolv_cb, (void (*)(void *))free_resolv_cb_data, cb_data);
+                resolv_mode, resolv_cb,
+                (void (*)(void *))free_resolv_cb_data, cb_data);
 
         con->state = RESOLVING;
 #endif
@@ -473,7 +504,11 @@ free_resolv_cb_data(struct resolv_cb_data *cb_data) {
 
 static void
 initiate_server_connect(struct Connection *con, struct ev_loop *loop) {
+#ifdef HAVE_ACCEPT4
+    int sockfd = socket(con->server.addr.ss_family, SOCK_STREAM | SOCK_NONBLOCK, 0);
+#else
     int sockfd = socket(con->server.addr.ss_family, SOCK_STREAM, 0);
+#endif
     if (sockfd < 0) {
         char client[INET6_ADDRSTRLEN + 8];
         warn("socket failed: %s, closing connection from %s",
@@ -483,14 +518,46 @@ initiate_server_connect(struct Connection *con, struct ev_loop *loop) {
         return;
     }
 
+#ifndef HAVE_ACCEPT4
     int flags = fcntl(sockfd, F_GETFL, 0);
     fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+#endif
 
-    if (con->listener->source_address) {
+    if (con->listener->transparent_proxy &&
+            con->client.addr.ss_family == con->server.addr.ss_family) {
         int on = 1;
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+#ifdef IP_TRANSPARENT
+        int result = setsockopt(sockfd, SOL_IP, IP_TRANSPARENT, &on, sizeof(on));
+#else
+        int result = -EPERM;
+        /* XXX error: not implemented would be better, but this shouldn't be
+         * reached since it is prohibited in the configuration parser. */
+#endif
+        if (result < 0) {
+            err("setsockopt IP_TRANSPARENT failed: %s", strerror(errno));
+            close(sockfd);
+            abort_connection(con);
+            return;
+        }
 
-        int result = 0;
+        result = bind(sockfd, (struct sockaddr *)&con->client.addr,
+                con->client.addr_len);
+        if (result < 0) {
+            err("bind failed: %s", strerror(errno));
+            close(sockfd);
+            abort_connection(con);
+            return;
+        }
+    } else if (con->listener->source_address) {
+        int on = 1;
+        int result = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+        if (result < 0) {
+            err("setsockopt SO_REUSEADDR failed: %s", strerror(errno));
+            close(sockfd);
+            abort_connection(con);
+            return;
+        }
+
         int tries = 5;
         do {
             result = bind(sockfd,
@@ -681,8 +748,8 @@ log_bad_request(struct Connection *con __attribute__((unused)), const char *req,
                                 "0x%02hhx, ", (unsigned char)req[i]);
 
     message_pos -= 2;/* Delete the trailing ', ' */
-    message_pos += snprintf(message_pos, message_end - message_pos,
-                            "}, %ld, ...) = %d", req_len, parse_result);
+    snprintf(message_pos, message_end - message_pos, "}, %ld, ...) = %d",
+             req_len, parse_result);
     debug("%s", message);
 }
 
